@@ -42,7 +42,7 @@ local slides = {
                 local h = slideBody:frame()["h"]
                 local webViewRect = hs.geometry.rect(x, y, w, h)
                 local webview = hs.webview.new(webViewRect)
-                webview:setLevel(hs.drawing.windowLevels["screenSaver"] + 1)
+                webview:setLevel(hs.drawing.windowLevels["normal"])
                 webview:url("http://www.hammerspoon.org/go/")
                 refs["titleSlideWebview"] = webview
             end
@@ -76,7 +76,7 @@ function renderSlide(slideNum)
 
     if not slideBackground then
         slideBackground = hs.drawing.rectangle(frame)
-        slideBackground:setLevel(hs.drawing.windowLevels["screenSaver"])
+        slideBackground:setLevel(hs.drawing.windowLevels["normal"])
         slideBackground:setFillColor(hs.drawing.color.hammerspoon["osx_yellow"])
         slideBackground:setFill(true)
         slideBackground:show(0.2)
