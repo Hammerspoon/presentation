@@ -61,6 +61,30 @@ local slides = {
         ["header"] = "What is it?",
         ["body"] = [[Hammerspoon exposes many OS X system APIs to a Lua environment, so you can script your environment]]
     },
+    {
+        ["header"] = "History",
+        ["body"] = [[Mjolnir Hydra sdegutis ... https://github.com/Hammerspoon/hammerspoon/#what-is-the-history-of-the-project]]
+    },
+    {
+        ["header"] = "A comparison",
+        ["body"] = [[https://github.com/sdegutis/mjolnir#mjolnir-vs-other-apps]]
+    },
+    {
+        ["header"] = "So what is it for",
+        ["body"] = "Coupling cushions and/or foksuk ipadden and/or .."
+    },
+    {
+        ["header"] = "Window management",
+        ["body"] = "The most obvious use case. mjomatic, tabs, expose, ..."
+    },
+    {
+        ["header"] = "Responding to events",
+        ["body"] = "idea: respond to '4G' vs 'local' WiFi by killing/starting Twitter.app"
+    },
+    {
+        ["header"] = "Command line interface",
+        ["body"] = "hs.ipc for when our hooks don't suffice"
+    }
 }
 
 -- Draw a slide on the screen, creating persistent screen objects if necessary
