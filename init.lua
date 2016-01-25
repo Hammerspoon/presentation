@@ -42,7 +42,7 @@ local slides = {
                 local h = slideBody:frame()["h"]
                 local webViewRect = hs.geometry.rect(x, y, w, h)
                 local webview = hs.webview.new(webViewRect)
-                webview:setLevel(hs.drawing.windowLevels["normal"])
+                webview:setLevel(hs.drawing.windowLevels["normal"]+1)
                 webview:url("http://www.hammerspoon.org/go/")
                 refs["titleSlideWebview"] = webview
             end
