@@ -46,8 +46,8 @@ local slides = {
                 webview:url("http://www.hammerspoon.org/go/")
                 refs["titleSlideWebview"] = webview
             end
-                local webview = refs["titleSlideWebview"]
-                webview:show(0.3)
+            local webview = refs["titleSlideWebview"]
+            webview:show(0.3)
             print("Entered title slide")
         end,
         ["exitFn"] = function()
