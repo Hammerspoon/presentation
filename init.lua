@@ -226,7 +226,10 @@ wifiwatcher:start()
     },
     {
         ["header"] = "Command line interface",
-        ["body"] = "hs.ipc for when our hooks don't suffice"
+        ["body"] = "insert screenshot of simple hs cli example"
+    },
+    {
+        ["header"] = "LuaSkin"
     }
 }
 
