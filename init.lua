@@ -2,6 +2,7 @@
 require("hs.chooser")
 require("hs.webview")
 require("hs.drawing")
+require("hs.mjomatic")
 
 -- Storage for persistent screen objects
 local presentationControl = nil
@@ -27,17 +28,65 @@ local currentSlide = 0
 -- Storage for transient screen objects
 local refs = {}
 
+-- List of safe default apps
+local defaultapps = {"Calculator", "Chess", "Notes", "Dictionary"}
+
+local mjomatic1={
+    "   CCCChhhh",
+    "   CCCChhhh",
+    "NNNNNNDDDDD",
+    "",
+    "C Calculator",
+    "h Chess",
+    "N Notes",
+    "D Dictionary"
+}
+
+local mjomatic2={
+    "   hhhNNNNN",
+    "   hhhNNNNN",
+    "CCCCCDDDDDD",
+    "",
+    "C Calculator",
+    "h Chess",
+    "N Notes",
+    "D Dictionary"
+}
+
+function launchdefaultapps()
+    for k,v in pairs(defaultapps) do
+        hs.application.launchOrFocus(v)
+    end
+end
+
+function killdefaultapps()
+    for k,v in pairs(defaultapps) do
+        local app = hs.application.get(v)
+        if app then
+            app:kill()
+        end
+    end
+end
+
 function makewebview(name, place, url, html)
     if refs[name] then
         return refs[name]
     else
         print("Creating webview "..name)
         local frame = presentationScreen:fullFrame()
-        local x = frame["x"] + ((frame["w"] - 100)*0.66) + 10
-        local y = slideHeader:frame()["y"] + slideHeader:frame()["h"] + 10
-        local w = ((frame["w"] - 100)*0.33) - 10
-        local h = slideBody:frame()["h"]
-        local webViewRect = hs.geometry.rect(x, y, w, h)
+        local webViewRect
+        if place == "right" then
+            local x = frame["x"] + ((frame["w"] - 100)*0.66) + 10
+            local y = slideHeader:frame()["y"] + slideHeader:frame()["h"] + 10
+            local w = ((frame["w"] - 100)*0.33) - 10
+            local h = slideBody:frame()["h"]
+            webViewRect = hs.geometry.rect(x, y, w, h)
+        elseif place == "body" then
+            webViewRect = hs.geometry.rect(frame["x"] + 50,
+                             slideHeader:frame()["y"] + slideHeader:frame()["h"] + 10,
+                             (frame["w"] - 100),
+                             (frame["h"] / 10) * 8 - (frame["h"] / 12))
+        end
         local webview = hs.webview.new(webViewRect)
         webview:setLevel(hs.drawing.windowLevels["normal"]+1)
         if url then
@@ -58,7 +107,8 @@ local slides = {
         ["header"] = "Hammerspoon",
         ["body"] = [[Staggeringly powerful desktop automation]],
         ["enterFn"] = function()
-            local webview = makewebview("titleSlideWebview", nil, "http://www.hammerspoon.org/go/", nil)
+            killdefaultapps()
+            local webview = makewebview("titleSlideWebview", "right", "http://www.hammerspoon.org/go/", nil)
             webview:show(0.3)
             print("Entered title slide")
         end,
@@ -71,23 +121,67 @@ local slides = {
     },
     {
         ["header"] = "What is it?",
-        ["body"] = [[Hammerspoon exposes many OS X system APIs to a Lua environment, so you can script your environment]]
+        ["body"] = [[Hammerspoon exposes many OS X system APIs to a Lua environment, so you can script your environment.]]
     },
     {
         ["header"] = "History",
-        ["body"] = [[Mjolnir Hydra sdegutis ... https://github.com/Hammerspoon/hammerspoon/#what-is-the-history-of-the-project]]
+        ["body"] = [[Hammerspoon is a fork of Mjolnir by Steven Degutis. Mjolnir aims to be a very minimal application, with its extensions hosted externally and managed using a Lua package manager. We wanted to provide a more integrated experience.]]
     },
     {
         ["header"] = "A comparison",
-        ["body"] = [[https://github.com/sdegutis/mjolnir#mjolnir-vs-other-apps]]
+        ["enterFn"] = function()
+            local webview = makewebview("comparisonSlideWebview", "body", "https://github.com/sdegutis/mjolnir#mjolnir-vs-other-apps", nil)
+            webview:show(0.3)
+        end,
+        ["exitFn"] = function()
+            local webview = refs["comparisonSlideWebview"]
+            webview:hide(0.2)
+        end,
     },
     {
         ["header"] = "So what is it for",
-        ["body"] = "Coupling cushions and/or foksuk ipadden and/or .."
+        ["body"] = [[• Window management
+• Reacting to all kinds of events
+  • WiFi, USB, path/file changes
+• Interacting with applications (menus)
+• Drawing custom interfaces on the screen
+• URL handling/mangling]]
     },
     {
-        ["header"] = "Window management",
-        ["body"] = "The most obvious use case. mjomatic, tabs, expose, ..."
+        ["header"] = "Window management (1)",
+        ["body"] = "Just launching some apps",
+        ["enterFn"] = function()
+            launchdefaultapps()
+        end
+    },
+    {
+        ["header"] = "Window management (2)",
+        ["body"] = "Mjomatic config:\n"..table.concat(mjomatic1, "\n"),
+        ["enterFn"] = function ()
+            for k,v in pairs(defaultapps) do
+                local app = hs.application.get(v)
+                if app then
+                    local window = app:mainWindow()
+                    if window then
+                        window:moveToScreen(presentationScreen)
+                    end
+                end
+            end
+            -- local webview = makewebview("mjomaticSlideWebview", "body", nil, "<pre>Mjomatic config:\n"..table.concat(mjomatic1, "\n").."</pre>")
+            -- webview:show(0.3)
+
+        end,
+        -- ["exitFn"] = function()
+        --     local webview = refs["mjomaticSlideWebview"]
+        --     webview:hide(0.2)
+        -- end
+    },
+    {
+        ["header"] = "Window management (3)",
+        ["body"] = "Mjomatic config:\n"..table.concat(mjomatic2, "\n"),
+        ["exitFn"] = function()
+            killdefaultapps()
+        end
     },
     {
         ["header"] = "Responding to events",
@@ -143,7 +237,7 @@ function renderSlide(slideNum)
         slideBody:orderAbove(slideBackground)
     end
 
-    slideBody:setText(slideData["body"])
+    slideBody:setText(slideData["body"] or "")
     slideBody:show(0.5)
 
     if not slideFooter then
@@ -224,6 +318,31 @@ function setupModal()
     slideModal:bind({}, "left", previousSlide)
     slideModal:bind({}, "right", nextSlide)
     slideModal:bind({}, "escape", endPresentation)
+
+    slideModal:bind({}, "M", function()
+            for k,v in pairs(defaultapps) do
+                local app = hs.application.get(v)
+                if app then
+                    local window = app:mainWindow()
+                    if window then
+                        window:raise()
+                    end
+                end
+            end
+            hs.mjomatic.go(mjomatic1)
+        end)
+    slideModal:bind({}, "N", function()
+            for k,v in pairs(defaultapps) do
+                local app = hs.application.get(v)
+                if app then
+                    local window = app:mainWindow()
+                    if window then
+                        window:raise()
+                    end
+                end
+            end
+            hs.mjomatic.go(mjomatic2)
+        end)
 
     slideModal:enter()
 end
