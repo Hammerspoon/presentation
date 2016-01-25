@@ -229,6 +229,10 @@ wifiwatcher:start()
         ["body"] = "insert screenshot of simple hs cli example"
     },
     {
+        ["header"] = "Other modules",
+        ["body"] = "list of cool modules/functions here just to discuss shortly"
+    },
+    {
         ["header"] = "LuaSkin"
     }
 }
