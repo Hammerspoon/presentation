@@ -27,26 +27,38 @@ local currentSlide = 0
 -- Storage for transient screen objects
 local refs = {}
 
+function makewebview(name, place, url, html)
+    if refs[name] then
+        return refs[name]
+    else
+        print("Creating webview "..name)
+        local frame = presentationScreen:fullFrame()
+        local x = frame["x"] + ((frame["w"] - 100)*0.66) + 10
+        local y = slideHeader:frame()["y"] + slideHeader:frame()["h"] + 10
+        local w = ((frame["w"] - 100)*0.33) - 10
+        local h = slideBody:frame()["h"]
+        local webViewRect = hs.geometry.rect(x, y, w, h)
+        local webview = hs.webview.new(webViewRect)
+        webview:setLevel(hs.drawing.windowLevels["normal"]+1)
+        if url then
+            webview:url(url)
+        elseif html then
+            webview:html(html)
+        else
+            webview:html("NO CONTENT!")
+        end
+        refs[name] = webview
+        return webview
+    end
+end
+
 -- Definitions of the slides
 local slides = {
     {
         ["header"] = "Hammerspoon",
         ["body"] = [[Staggeringly powerful desktop automation]],
         ["enterFn"] = function()
-            if not refs["titleSlideWebview"] then
-                print("Creating webview")
-                local frame = presentationScreen:fullFrame()
-                local x = frame["x"] + ((frame["w"] - 100)*0.66) + 10
-                local y = slideHeader:frame()["y"] + slideHeader:frame()["h"] + 10
-                local w = ((frame["w"] - 100)*0.33) - 10
-                local h = slideBody:frame()["h"]
-                local webViewRect = hs.geometry.rect(x, y, w, h)
-                local webview = hs.webview.new(webViewRect)
-                webview:setLevel(hs.drawing.windowLevels["normal"]+1)
-                webview:url("http://www.hammerspoon.org/go/")
-                refs["titleSlideWebview"] = webview
-            end
-            local webview = refs["titleSlideWebview"]
+            local webview = makewebview("titleSlideWebview", nil, "http://www.hammerspoon.org/go/", nil)
             webview:show(0.3)
             print("Entered title slide")
         end,
