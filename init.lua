@@ -184,8 +184,45 @@ local slides = {
         end
     },
     {
-        ["header"] = "Responding to events",
-        ["body"] = "idea: respond to '4G' vs 'local' WiFi by killing/starting Twitter.app"
+        ["header"] = "Responding to WiFi events",
+        ["enterFn"] = function()
+          local webview = makewebview("wifiwatcherSlideWebview", "body", nil, [[<pre>
+wifiwatcher = hs.wifi.watcher.new(function()
+  print"wifiwatcher fired"
+  local network = hs.wifi.currentNetwork()
+  if network then
+    hs.alert("joined wifi network "..network)
+  else
+    hs.alert("wifi disconnected")
+  end
+  if network == "Fibonacci" then
+    hs.application.launchOrFocus("Twitter")
+  else
+    local app = hs.application.get("Twitter")
+    if app then
+      app:kill9()
+    end
+  end
+end)
+wifiwatcher:start()
+</pre>]])
+          webview:show(0.3)
+        end,
+        ["exitFn"] = function()
+          local webview = refs["wifiwatcherSlideWebview"]
+          webview:hide(0.2)
+        end
+    },
+    {
+        ["header"] = "Handling URL events",
+        ["enterFn"] = function()
+            local webview = makewebview("URLSlideWebview", "body", "", '<img src="https://cloud.githubusercontent.com/assets/353427/9669248/c37c6f26-527d-11e5-9299-41b3cdcb4a04.png">')
+            webview:show(0.3)
+        end,
+        ["exitFn"] = function()
+            local webview = refs["URLSlideWebview"]
+            webview:hide(0.2)
+        end
     },
     {
         ["header"] = "Command line interface",
