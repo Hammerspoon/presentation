@@ -237,7 +237,15 @@ wifiwatcher:start()
         ["body"] = [[alert appfinder applescript application audiodevice battery brightness caffeinate chooser drawing eventtap expose geometry grid hints host hotkey http httpserver image itunes javascript layout location menubar messages milight mouse notify pasteboard pathwatcher redshift screen sound spaces speech spotify tabs task timer uielement urlevent usb webview wifi]]
     },
     {
-        ["header"] = "LuaSkin"
+        ["header"] = "LuaSkin",
+        ["enterFn"] = function()
+            local webview = makewebview("LuaSkinSlideWebview", "body", "https://github.com/Hammerspoon/hammerspoon/issues/749#issuecomment-173610148", nil)
+            webview:show(0.3)
+        end,
+        ["exitFn"] = function()
+            local webview = refs["LuaSkinSlideWebview"]
+            webview:hide(0.2)
+        end
     },
     {
         ["header"] = "Questions?"
