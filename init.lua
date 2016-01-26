@@ -120,6 +120,10 @@ local slides = {
         end,
     },
     {
+        ["header"] = "Who am I?",
+        ["body"] = [[Peter van Dijk, PowerDNS (lots of Lua in all our products!), contributor to Hammerspoon predecessors, mostly passively involved in Hammerspoon development.]]
+    },
+    {
         ["header"] = "What is it?",
         ["body"] = [[Hammerspoon exposes many OS X system APIs to a Lua environment, so you can script your environment.]]
     },
@@ -230,7 +234,7 @@ wifiwatcher:start()
     },
     {
         ["header"] = "Other modules",
-        ["body"] = "list of cool modules/functions here just to discuss shortly"
+        ["body"] = [[alert appfinder applescript application audiodevice battery brightness caffeinate chooser drawing eventtap expose geometry grid hints host hotkey http httpserver image itunes javascript layout location menubar messages milight mouse notify pasteboard pathwatcher redshift screen sound spaces speech spotify tabs task timer uielement urlevent usb webview wifi]]
     },
     {
         ["header"] = "LuaSkin"
