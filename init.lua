@@ -230,7 +230,14 @@ wifiwatcher:start()
     },
     {
         ["header"] = "Command line interface",
-        ["body"] = "insert screenshot of simple hs cli example"
+        ["enterFn"] = function()
+            local webview = makewebview("IPCSlideWebview", "body", nil, '<img src="https://cloud.githubusercontent.com/assets/525838/12647663/84e93d26-c5d6-11e5-846f-d7a1b7bcdba9.png">')
+            webview:show(0.3)
+        end,
+        ["exitFn"] = function()
+            local webview = refs["IPCSlideWebview"]
+            webview:hide(0.2)
+        end
     },
     {
         ["header"] = "Other modules",
