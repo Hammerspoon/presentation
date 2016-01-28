@@ -220,7 +220,7 @@ wifiwatcher:start()
     {
         ["header"] = "Handling URL events",
         ["enterFn"] = function()
-            local webview = makewebview("URLSlideWebview", "body", "", '<img src="https://cloud.githubusercontent.com/assets/353427/9669248/c37c6f26-527d-11e5-9299-41b3cdcb4a04.png">')
+            local webview = makewebview("URLSlideWebview", "body", nil, '<img src="https://cloud.githubusercontent.com/assets/353427/9669248/c37c6f26-527d-11e5-9299-41b3cdcb4a04.png">')
             webview:show(0.3)
         end,
         ["exitFn"] = function()
