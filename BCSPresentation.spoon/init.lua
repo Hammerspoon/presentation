@@ -1,3 +1,4 @@
+--↔
 local obj = { __gc = true }
 setmetatable(obj, obj)
 obj.__gc = function(t)
@@ -26,7 +27,8 @@ function obj:init()
     -- Create a menubar object to initiate the presentation
     self.presentationControl = hs.menubar.new()
     --presentationControl:setIcon(hs.image.imageFromName(hs.image.systemImageNames["EnterFullScreenTemplate"]))
-    self.presentationControl:setIcon(hs.image.imageFromName("NSComputer"))
+    --self.presentationControl:setIcon(hs.image.imageFromName("NSSecurity"))
+    self.presentationControl:setTitle("Presentation")
     self.presentationControl:setMenu({{ title = "Start Presentation", fn = obj.setupPresentation }})
 end
 
@@ -62,12 +64,22 @@ function obj.setDefaultFontSizes()
     obj.slideFooterSize = obj.screenFrame["h"] / 30
 end
 
+function obj.get_left_frame(percent)
+    local factor = percent/100
+    local fakeBodyFrame = obj.get_body_frame(obj.screenFrame, 100)
+    local x = fakeBodyFrame["x"]
+    local y = obj.slideHeaderFrame["y"] + obj.slideHeaderFrame["h"] + 10
+    local w = fakeBodyFrame["w"] * factor - 5
+    local h = fakeBodyFrame["h"]
+    return {x=x, y=y, w=w, h=h}
+end
+
 function obj.get_right_frame(percent)
     local factor = percent/100
     local fakeBodyFrame = obj.get_body_frame(obj.screenFrame, 100)
-    local x = fakeBodyFrame["x"] + (fakeBodyFrame["w"] *(1-factor))
+    local x = fakeBodyFrame["x"] + (fakeBodyFrame["w"] *(1-factor)) + 5
     local y = obj.slideHeaderFrame["y"] + obj.slideHeaderFrame["h"] + 10
-    local w = fakeBodyFrame["w"] * factor
+    local w = fakeBodyFrame["w"] * factor - 5
     local h = fakeBodyFrame["h"]
     return {x=x, y=y, w=w, h=h}
 end
@@ -88,6 +100,8 @@ function obj.makecodeview(slideView, name, place, code, percent)
         codeViewRect = obj.get_right_frame(33)
     elseif place == "righthalf" then
         codeViewRect = obj.get_right_frame(50)
+    elseif place == "lefthalf" then
+        codeViewRect = obj.get_left_frame(50)
     elseif place == "body" then
         codeViewRect = obj.get_body_frame(obj.screenFrame, 100)
     end
@@ -95,7 +109,7 @@ function obj.makecodeview(slideView, name, place, code, percent)
     slideView:appendElements({action="fill",
                               type="rectangle",
                               frame=codeViewRect,
-                              fillColor=hs.drawing.color.x11.gainsboro},
+                              fillColor=hs.drawing.color.x11.white},
                              {action="fill",
                               type="text",
                               frame=codeViewRect,
@@ -136,6 +150,8 @@ function obj.makewebview(name, place, url, html)
             webViewRect = obj.get_right_frame(33)
         elseif place == "righthalf" then
             webViewRect = obj.get_right_frame(50)
+        elseif place == "lefthalf" then
+            webViewRect = obj.get_left_frame(50)
         elseif place == "body" then
             webViewRect = obj.get_body_frame(obj.screenFrame, 100)
         end
@@ -175,7 +191,7 @@ obj.slides = {
  • Hammerspoon's birth
  • How the app works
  • Questions
- 
+
  (the whole talk is a demo)]]
     },
     {
@@ -189,51 +205,51 @@ obj.slides = {
 Third party:
  • 1991 onwards - AppleScript libraries, many utilities]]
     },
-    {
-        ["header"] = "AppleScript",
-        ["enterFn"] = function()
-            obj.makecodeview(obj.slideView, "appleScriptCodeView", "righthalf", [[tell application "Hammerspoon"
-  execute lua code "hs.reload()"
-end tell
-
-tell application "Safari"
-    set currentURL to URL of document 1
-end tell
-return currentURL]])
-        end,
-        ["bodyWidth"] = 50,
-        ["body"] = [[ • Supposedly simple, natural language
- • Very powerful despite its awful syntax
- • High level messages passed to apps via Apple Events
- • Apps expected to expose their functionality
- • Apps can expose object hierarchies (e.g. a browser can expose page elements within tabs within windows)]]
-    },
-    {
-        ["header"] = "Receiving AppleScript events",
-        ["enterFn"] = function()
-            obj.makecodeview(obj.slideView, "appleScriptCodeView", "righthalf", [[@implementation executeLua
--(id)performDefaultImplementation {
-    // Get the arguments:
-    NSDictionary *args = [self evaluatedArguments];
-    NSString *stringToExecute = [args valueForKey:@""];
-    if (HSAppleScriptEnabled()) {
-        // Execute Lua Code:
-        return executeLua(self, stringToExecute);
-    } else {
-        // Raise AppleScript Error:
-        [self setScriptErrorNumber:-50];
-        [self setScriptErrorString:someErrorMessage];
-        return @"Error";
-    }
-}
-@end]])
-        end,
-        ["body"] = [[ • Application defines the commands it accepts (in this case "executeLua") in an XML "dictionary"
- • Commands are mapped to Objective C interfaces (like protocols/traits in other languages)
- • Foundation.framework calls the implementation method of the relevant interface
- • Dictionaries can be browsed by the user using Script Editor.app]],
-        ["bodyWidth"] = 50
-    },
+--     {
+--         ["header"] = "AppleScript",
+--         ["enterFn"] = function()
+--             obj.makecodeview(obj.slideView, "appleScriptCodeView", "righthalf", [[tell application "Hammerspoon"
+--   execute lua code "hs.reload()"
+-- end tell
+-- 
+-- tell application "Safari"
+--     set currentURL to URL of document 1
+-- end tell
+-- return currentURL]])
+--         end,
+--         ["bodyWidth"] = 50,
+--         ["body"] = [[ • Supposedly simple, natural language
+--  • Very powerful despite its awful syntax
+--  • High level messages passed to apps via Apple Events
+--  • Apps expected to expose their functionality
+--  • Apps can expose object hierarchies (e.g. a browser can expose page elements within tabs within windows)]]
+--     },
+--     {
+--         ["header"] = "Receiving AppleScript events",
+--         ["enterFn"] = function()
+--             obj.makecodeview(obj.slideView, "appleScriptCodeView", "righthalf", [[@implementation executeLua
+-- -(id)performDefaultImplementation {
+--     // Get the arguments:
+--     NSDictionary *args = [self evaluatedArguments];
+--     NSString *stringToExecute = [args valueForKey:@""];
+--     if (HSAppleScriptEnabled()) {
+--         // Execute Lua Code:
+--         return executeLua(self, stringToExecute);
+--     } else {
+--         // Raise AppleScript Error:
+--         [self setScriptErrorNumber:-50];
+--         [self setScriptErrorString:someErrorMessage];
+--         return @"Error";
+--     }
+-- }
+-- @end]])
+--         end,
+--         ["body"] = [[ • Application defines the commands it accepts (in this case "executeLua") in an XML "dictionary"
+--  • Commands are mapped to Objective C interfaces (like protocols/traits in other languages)
+--  • Foundation.framework calls the implementation method of the relevant interface
+--  • Dictionaries can be browsed by the user using Script Editor.app]],
+--         ["bodyWidth"] = 50
+--     },
     {
         ["header"] = "How Hammerspoon came to exist: Motivation",
         ["enterFn"] = function()
@@ -262,17 +278,22 @@ return currentURL]])
  • They were supposed to be distributed separately
  • Small group of us disagreed and decided to fork in October 2014
  • Aim was a "batteries included" automation app
- • Started with ~15000 lines of code (13000 being Lua 5.2.3, 500 being integrations)
- • Now have ~100000 lines of code (15000 being Lua 5.3.4, 37500 being integrations)]]
+ • Started with ~15000 lines of code (13000 being Lua)
+ • Now have ~100000 lines of code (37500 being OS integrations)]]
     },
     {
         ["header"] = "So what can it do?",
-        ["body"] = [[• Window management
-• Reacting to all kinds of events
-  • WiFi, USB, path/file changes, location, audio devices
+        ["body"] = [[• Reacting to all kinds of events
+  • WiFi, USB, path/file changes,
+  • Location, audio devices
+  • Keyboard/Mouse/Scroll inputs
+  • Application launch/hide/quit
+  • Battery, Screen, Speech
+• Window management
 • Interacting with applications (menus)
 • Drawing custom interfaces on the screen
-• HTTP client/server, raw socket client/server
+• HTTP client/server
+• Raw socket client/server
 • URL handling/mangling
 • MIDI, SQLite3, Timers, Processes, etc.]],
         ["enterFn"] = function()
@@ -305,13 +326,23 @@ return currentURL]])
 • Ripe for abstraction
 • Handles errors with setjmp/longjmp
 • We built "LuaSkin"
+  • Singleton for Lua state
+  • Lua state lifecycle
+  • Library/Object creation
+  • Lua ↔ ObjC type translation (including ObjC objects)
+  • Lua errors → ObjC exceptions
+  • Standalone in theory
         ]],
+    },
+    {
+        ["header"] = "Lua vs LuaSkin",
         ["enterFn"] = function()
-            obj.makecodeview(obj.slideView, "howDoesItWorkCodeView", "righthalf", [[luaL_Reg counterLib[] = {
+            obj.makecodeview(obj.slideView, "LuaVsLuaSkinILeft", "lefthalf", [[luaL_Reg counterLib[] = {
   {"increment", incrementCounter}, {NULL, NULL}
 };
 void main() {
-    lua_State *L = luaL_newstate(); luaL_openlibs();
+    lua_State *L = luaL_newstate();
+    luaL_openlibs();
     luaL_newlib(L, counterLib);
     fictionalEventLoop();
 }
@@ -326,20 +357,73 @@ static int incrementCounter(lua_State *L) {
     return 1;
 }
 ]])
+            obj.makecodeview(obj.slideView, "LuaVsLuaSkinIRight", "righthalf", [[luaL_Reg counterLib[] = {
+  {"increment", incrementCounter}, {NULL, NULL}
+};
+void main() {
+    LuaSkin *skin = [LuaSkin shared];
+    [skin registerLibrary:counterLib];
+    fictionalEventLoop();
+}
+
+
+static int incrementCounter(lua_State *L) {
+    LuaSkin *skin = [LuaSkin shared];
+    [skin checkArgs:LS_TINTEGER, LS_TBREAK];
+
+    int counter = lua_tointeger(L, 1);
+    counter++;
+    lua_pushinteger(L, counter);
+    return 1;
+}
+]])
         end,
     },
     {
-        ["header"] = "LuaSkin",
-        ["body"] = [[• Singleton for Lua state
-• Lua state lifecycle
-• Library creation
-• Object creation
-• Object Lua/ObjC glue
-• Lua/ObjC type translation
-• Lua errors → ObjC exceptions
-• Standalone in theory]],
+        ["header"] = "Lua vs LuaSkin Part 2",
+        ["exitFn"] = function()
+            local webview = obj.refs["LuaVsLuaSkinIILeft"]
+            webview:hide(0.1)
+        end,
         ["enterFn"] = function()
-            obj.makecodeview(obj.slideView, "luaSkinPart1", "righthalf", [[luaL_Reg lib[] = {{"new", new}, {NULL, NULL}};
+            local webview = obj.makewebview("LuaVsLuaSkinIILeft", "lefthalf", nil, [[<html><head><style>
+pre {
+    width: 100%;
+    font-size: 28px;
+}
+</style></head>
+<body><pre>luaL_Reg lib[] = {{"new", new}, {NULL, NULL}};
+luaL_Reg obj[] = {{"inc", inc}, {NULL, NULL}};
+void main() {
+    lua_State *L = luaL_newstate(); luaL_openlibs();
+    luaL_newlib(L, lib);
+    luaL_newlib(L, obj);
+    lua_pushvalue(L, -1);
+    lua_setfield(L, -2, "__index");
+    lua_setfield(L, LUA_REGISTRYINDEX, "counter");
+}
+static int new(lua_State *L) {
+    if (lua_type(L, 1) != LUA_TINTEGER) {
+        lua_pushnil(L);
+        return;
+    }
+    int *c_ptr = lua_newuserdata(L, sizeof(int));
+    *c_ptr = lua_tointeger(L, 1);
+    luaL_getmetatable(L, "counter");
+    lua_setmetatable(L, -2);
+    return 1;
+}
+static int inc(lua_State *L) {
+    luaL_checktype(L, 1, LUA_TUSERDATA);
+    int *c_ptr = luaL_checkudata(L, 1, "counter");
+    if (!c_ptr) luaL_typerror(L, 1, "counter");
+    int c = *c_ptr;
+    c++;
+    return 0;
+}
+</pre></body></html>]])
+            webview:show(0.1)
+            obj.makecodeview(obj.slideView, "LuaVsLuaSkinIIRight", "righthalf", [[luaL_Reg lib[] = {{"new", new}, {NULL, NULL}};
 luaL_Reg obj[] = {{"inc", inc}, {NULL, NULL}};
 void main() {
     LuaSkin *skin = [LuaSkin shared];
@@ -413,11 +497,19 @@ static int streamdeck_setButtonImage(lua_State *L __unused) {
     lua_pushvalue(skin.L, 1);
     return 1;
 }
-        ]])
+]])
         end,
     },
     {
-        ["header"] = "Questions?"
+        ["header"] = "Questions?",
+        ["body"] = [[
+
+
+Resources:
+  • http://www.hammerspoon.org/
+  • https://github.com/Hammerspoon/
+  • #hammerspoon on Freenode
+]],
     }
 }
 
@@ -457,7 +549,6 @@ function obj:renderSlide(slideNum)
     if self.slideView:elementCount() > self.numDefaultElements then
         print("Removing "..(self.slideView:elementCount() - self.numDefaultElements).." elements")
         for i=self.numDefaultElements+1,self.slideView:elementCount() do
-            print(".")
             self.slideView:removeElement(self.numDefaultElements + 1)
         end
     end
