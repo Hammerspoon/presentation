@@ -172,13 +172,17 @@ end
 -- Definitions of the slides
 obj.slides = {
     {
-        ["header"] = "Hammerspoon",
+        ["header"] = "Hammerspoon - Chris Jones",
         ["body"] = [[
  • Ng on IRC
  • cmsj everywhere else
  • Work at Red Hat on OpenStack
- • Do we have any Mac users present?
-   (this could be very boring if not!)]],
+
+
+ • Any Mac users in?
+ • Anyone used Objective C?
+ • Anyone used Lua?
+]],
         ["enterFn"] = function()
             obj.makeimageview(obj.slideView, "hammerspoon", "righthalf", "hammerspoon.png")
         end,
@@ -188,11 +192,11 @@ obj.slides = {
         ["header"] = "Agenda",
         ["body"] = [[We will cover:
  • A little Apple history
- • Hammerspoon's birth
- • How the app works
- • Questions
-
- (the whole talk is a demo)]]
+ • How Hammerspoon came to exist
+ • What can it do?
+ • How Hammerspoon works
+ • Questions?
+]],
     },
     {
         ["header"] = "A little Apple history",
@@ -203,7 +207,8 @@ obj.slides = {
  • 2007 - ScriptingBridge (OS X 10.5)
 
 Third party:
- • 1991 onwards - AppleScript libraries, many utilities]]
+ • 1991 onwards - AppleScript libraries, many utilities
+ • 2014 - Hammerspoon is forked from Mjolnir]]
     },
 --     {
 --         ["header"] = "AppleScript",
@@ -250,31 +255,31 @@ Third party:
 --  • Dictionaries can be browsed by the user using Script Editor.app]],
 --         ["bodyWidth"] = 50
 --     },
-    {
-        ["header"] = "How Hammerspoon came to exist: Motivation",
-        ["enterFn"] = function()
-            obj.makeimageview(obj.slideView, "keyboardMaestro", "righthalf", "keyboardmaestro.png")
-        end,
-        ["bodyWidth"] = 50,
-        ["body"] = [[ • I was using Keyboard Maestro to automate tasks
- • Very powerful, can react to lots of system events
- • Ideal for non-programmer power users
- • As a programmer, became frustrated with graphical programming
- • Not open source]]
-    },
-    {
-        ["header"] = "How Hammerspoon came to exist: Circumstance",
-        ["body"] = [[ • Others also wanted something programmable
- • First notable app was Slate (used JavaScript)
-   • Quickly went unmaintained, never really recovered
- • Steven Degutis began a series of open source experiments
-   • Hydra, Phoenix, Penknife (used various languages)
- • Culminated in Mjolnir, simple bridge between Lua and OS X]]
-    },
+--    {
+--        ["header"] = "How Hammerspoon came to exist: Motivation",
+--        ["enterFn"] = function()
+--            obj.makeimageview(obj.slideView, "keyboardMaestro", "righthalf", "keyboardmaestro.png")
+--        end,
+--        ["bodyWidth"] = 50,
+--        ["body"] = [[ • I was using Keyboard Maestro to automate tasks
+-- • Very powerful, can react to lots of system events
+-- • Ideal for non-programmer power users
+-- • As a programmer, became frustrated with graphical programming
+-- • Not open source]]
+--    },
+--    {
+--        ["header"] = "How Hammerspoon came to exist: Circumstance",
+--        ["body"] = [[ • Others also wanted something programmable
+-- • First notable app was Slate (used JavaScript)
+--   • Quickly went unmaintained, never really recovered
+-- • Steven Degutis began a series of open source experiments
+--   • Hydra, Phoenix, Penknife (used various languages)
+-- • Culminated in Mjolnir, simple bridge between Lua and OS X]]
+--    },
     {
         ["header"] = "How Hammerspoon came to exist: The Fork",
-        ["body"] = [[ • Steven wanted to keep Mjolnir small and pure
- • It didn't ship with any OS integrations
+        ["body"] = [[ • Mjolnir is a very simple Lua ↔ ObjC bridge
+ • Shipped with no OS integrations
  • They were supposed to be distributed separately
  • Small group of us disagreed and decided to fork in October 2014
  • Aim was a "batteries included" automation app
@@ -326,136 +331,228 @@ Third party:
 • Ripe for abstraction
 • Handles errors with setjmp/longjmp
 • We built "LuaSkin"
-  • Singleton for Lua state
   • Lua state lifecycle
+  • Argument checking
   • Library/Object creation
   • Lua ↔ ObjC type translation (including ObjC objects)
   • Lua errors → ObjC exceptions
-  • Standalone in theory
         ]],
     },
+--    {
+--        ["header"] = "Lua vs LuaSkin - Lifecycle",
+--        ["enterFn"] = function()
+--            obj.makecodeview(obj.slideView, "LuaVsLuaSkinILeft", "lefthalf", [[lua_State *createLua() {
+--    lua_State *L = luaL_newstate();
+--    luaL_openlibs();
+--    luaL_loadfile(L, "~/.hammerspoon/init.lua");
+--    lua_pcall(L, 0, 0, 0);
+--    return L;
+--}
+--
+--void destroyLua(lua_State *L) {
+--    lua_close(L);
+--    L = NULL;
+--}
+--]])
+--            obj.makecodeview(obj.slideView, "LuaVsLuaSkinIRight", "righthalf", [[LuaSkin *createLua() {
+--    return [LuaSkin shared];
+--}
+--
+--void destroyLua(LuaSkin *skin) {
+--    [skin destroyLuaState];
+--}
+--]])
+--        end,
+--    },
     {
-        ["header"] = "Lua vs LuaSkin",
+        ["header"] = "Lua vs LuaSkin - Argument checking",
         ["enterFn"] = function()
-            obj.makecodeview(obj.slideView, "LuaVsLuaSkinILeft", "lefthalf", [[luaL_Reg counterLib[] = {
-  {"increment", incrementCounter}, {NULL, NULL}
-};
-void main() {
-    lua_State *L = luaL_newstate();
-    luaL_openlibs();
-    luaL_newlib(L, counterLib);
-    fictionalEventLoop();
-}
-
-static int incrementCounter(lua_State *L) {
-    if (lua_type(L, 1) != LUA_TINTEGER) {
-        luaL_error(L, "increment requires an integer");
+            obj.makecodeview(obj.slideView, "LuaVsLuaSkinArgCheckLeft", "lefthalf", [[static int foo(lua_State *L) {
+    if (lua_type(L, 1) != LUA_TINTEGER && \
+        lua_type(L, 1) != LUA_TSTRING) {
+        luaL_error(L, "argument 1 must be an integer or a string");
     }
-    int counter = lua_tointeger(L, 1);
-    counter++;
-    lua_pushinteger(L, counter);
-    return 1;
-}
+    if (lua_type(L, 2) != LUA_TSTRING && \
+        lua_type(L, 2) != LUA_TBOOLEAN) {
+        luaL_error(L, "argument 2 must be a string or a boolean");
+    }
 ]])
-            obj.makecodeview(obj.slideView, "LuaVsLuaSkinIRight", "righthalf", [[luaL_Reg counterLib[] = {
-  {"increment", incrementCounter}, {NULL, NULL}
-};
-void main() {
-    LuaSkin *skin = [LuaSkin shared];
-    [skin registerLibrary:counterLib];
-    fictionalEventLoop();
-}
-
-
-static int incrementCounter(lua_State *L) {
-    LuaSkin *skin = [LuaSkin shared];
-    [skin checkArgs:LS_TINTEGER, LS_TBREAK];
-
-    int counter = lua_tointeger(L, 1);
-    counter++;
-    lua_pushinteger(L, counter);
-    return 1;
-}
+            obj.makecodeview(obj.slideView, "LuaVsLuaSkinArgCheckRight", "righthalf", [[LuaSkin *skin = [LuaSkin shared];
+[skin argcheck:LS_TINTEGER|LS_TSTRING, LS_TSTRING|LS_TBOOLEAN, LS_TBREAK];
 ]])
         end,
     },
+--    {
+--        ["header"] = "Lua vs LuaSkin - Library creation",
+--        ["enterFn"] = function()
+--            obj.makecodeview(obj.slideView, "LuaVsLuaSkinLibCreationLeft", "lefthalf", [[luaL_Reg lib[] = {
+--    {"someUsefulThing", someCFunction},
+--    {NULL, NULL}
+--};
+--
+--luaL_Reg lib_meta[] = {
+--    {"__gc", someCleanupFunction},
+--    {NULL, NULL}
+--};
+--
+--luaL_newlib(L, lib);
+--luaL_newlib(L, lib_meta);
+--lua_setmetatable(L, -2);
+--]])
+--            obj.makecodeview(obj.slideView, "LuaVsLuaSkinLibCreationRight", "righthalf", [[luaL_Reg lib[] = {
+--    {"someUsefulThing", someCFunction},
+--    {NULL, NULL}
+--};
+--
+--luaL_Reg lib_meta[] = {
+--    {"__gc", someCleanupFunction},
+--    {NULL, NULL}
+--};
+--
+--LuaSkin *skin = [LuaSkin shared];
+--[skin registerLibrary:lib metaFunctions:lib_meta];
+--]])
+--        end,
+--    },
     {
-        ["header"] = "Lua vs LuaSkin Part 2",
-        ["exitFn"] = function()
-            local webview = obj.refs["LuaVsLuaSkinIILeft"]
-            webview:hide(0.1)
-        end,
+        ["header"] = "Lua vs LuaSkin - Object creation",
         ["enterFn"] = function()
-            local webview = obj.makewebview("LuaVsLuaSkinIILeft", "lefthalf", nil, [[<html><head><style>
-pre {
-    width: 100%;
-    font-size: 28px;
-}
-</style></head>
-<body><pre>luaL_Reg lib[] = {{"new", new}, {NULL, NULL}};
-luaL_Reg obj[] = {{"inc", inc}, {NULL, NULL}};
-void main() {
-    lua_State *L = luaL_newstate(); luaL_openlibs();
-    luaL_newlib(L, lib);
-    luaL_newlib(L, obj);
-    lua_pushvalue(L, -1);
-    lua_setfield(L, -2, "__index");
-    lua_setfield(L, LUA_REGISTRYINDEX, "counter");
-}
-static int new(lua_State *L) {
-    if (lua_type(L, 1) != LUA_TINTEGER) {
+            obj.makecodeview(obj.slideView, "LuaVsLuaSkinObjCreationLeft", "lefthalf", [[luaL_Reg obj[] = {
+    {"methodA", someCFunction},
+    {"methodB", otherCFunction},
+    {NULL, NULL}
+};
+
+luaL_newlib(L, obj);
+lua_pushvalue(L, -1);
+lua_setfield(L, -2, "__index");
+lua_pushstring(L, "objectName");
+lua_setfield(L, -2, "__type");
+lua_pushstring(L, "objectName");
+lua_setfield(L, -2, "__name");
+lua_setfield(L, LUA_REGISTRYINDEX, "objectName");
+]])
+            obj.makecodeview(obj.slideView, "LuaVsLuaSkinObjCreationRight", "righthalf", [[luaL_Reg obj[] = {
+    {"methodA", someCFunction},
+    {"methodB", otherCFunction},
+    {NULL, NULL}
+};
+
+LuaSkin *skin = [LuaSkin shared];
+[skin registerObject:"objectName" objectFunctions:obj];
+]])
+        end
+    },
+    {
+        ["header"] = "Lua vs LuaSkin - Type translation",
+        ["enterFn"] = function()
+            obj.makecodeview(obj.slideView, "LuaVsLuaSkinTypeTransLeft", "lefthalf", [[NSString *obj = @"hello world";
+size_t size = [obj lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
+lua_pushlstring(L, obj.UTF8String, size);
+
+NSString *foo = [NSString stringWithUTF8String:lua_tostring(L, 1)];
+
+NSArray *list = @[@"hi", @(42), [SomeClass newClass] ];
+for (int i=0; i < list.allKeys; i++) {
+    id obj = [list objectAtIndex:i];
+
+    if ([obj isKindOfClass:[NSNull class] ])
         lua_pushnil(L);
-        return;
+    else if ([obj isKindOfClass:[NSNumber class] ])
+        lua_pushinteger(L, [(NSNumber *)obj intValue]);
+    else if ([obj isKindOfClass:[NSArray class] ]) {
+        // Oh no, we need to recurse
+        lua_pushSOMETHING(L, I_HATE_MY_LIFE);
     }
-    int *c_ptr = lua_newuserdata(L, sizeof(int));
-    *c_ptr = lua_tointeger(L, 1);
-    luaL_getmetatable(L, "counter");
-    lua_setmetatable(L, -2);
-    return 1;
-}
-static int inc(lua_State *L) {
-    luaL_checktype(L, 1, LUA_TUSERDATA);
-    int *c_ptr = luaL_checkudata(L, 1, "counter");
-    if (!c_ptr) luaL_typerror(L, 1, "counter");
-    int c = *c_ptr;
-    c++;
-    return 0;
-}
-</pre></body></html>]])
-            webview:show(0.1)
-            obj.makecodeview(obj.slideView, "LuaVsLuaSkinIIRight", "righthalf", [[luaL_Reg lib[] = {{"new", new}, {NULL, NULL}};
-luaL_Reg obj[] = {{"inc", inc}, {NULL, NULL}};
-void main() {
-    LuaSkin *skin = [LuaSkin shared];
-    [skin registerLibrary:lib metaFunctions:nil];
-    [skin registerObject:"counter" objectFunctions:obj];
-}
-static int new(lua_State *L) {
-    LuaSkin *skin = [LuaSkin shared];
-    [skin checkArgs:LS_TINTEGER, LS_TBREAK];
-    Counter *c = [SomeCounterClass newClass];
-    c.value = lua_tointeger(L, 1);
-    [skin pushNSObject:c];
-    return 1;
-}
-static int inc(lua_State *L) {
-    LuaSkin *skin = [LuaSkin shared];
-    [skin checkArgs:LS_TUSERDATA, "counter", LS_TBREAK];
-    Counter *c = get_object(Counter, L, 1, "counter");
-    c.value++;
-    return 0;
+    // Repeat for every type of class and cry
 }
 ]])
-        end,
+            obj.makecodeview(obj.slideView, "LuaVsLuaSkinTypeTransRight", "righthalf", [[NSString *obj = @"hello world";
+[skin pushNSObject:obj];
+
+NSString *foo = [skin toNSObjectAtIndex:1];
+
+NSArray *list = @[@"hi", @(42), [SomeClass newClass] ];
+[skin pushNSObject:list];
+]])
+        end
     },
+--     {
+--         ["header"] = "Lua vs LuaSkin Part 2",
+--         ["exitFn"] = function()
+--             local webview = obj.refs["LuaVsLuaSkinIILeft"]
+--             webview:hide(0.1)
+--         end,
+--         ["enterFn"] = function()
+--             local webview = obj.makewebview("LuaVsLuaSkinIILeft", "lefthalf", nil, [[<html><head><style>
+-- pre {
+--     width: 100%;
+--     font-size: 28px;
+-- }
+-- </style></head>
+-- <body><pre>luaL_Reg lib[] = {{"new", new}, {NULL, NULL}};
+-- luaL_Reg obj[] = {{"inc", inc}, {NULL, NULL}};
+-- void main() {
+--     lua_State *L = luaL_newstate(); luaL_openlibs();
+--     luaL_newlib(L, lib);
+--     luaL_newlib(L, obj);
+--     lua_pushvalue(L, -1);
+--     lua_setfield(L, -2, "__index");
+--     lua_setfield(L, LUA_REGISTRYINDEX, "counter");
+-- }
+-- static int new(lua_State *L) {
+--     if (lua_type(L, 1) != LUA_TINTEGER) {
+--         lua_pushnil(L);
+--         return;
+--     }
+--     int *c_ptr = lua_newuserdata(L, sizeof(int));
+--     *c_ptr = lua_tointeger(L, 1);
+--     luaL_getmetatable(L, "counter");
+--     lua_setmetatable(L, -2);
+--     return 1;
+-- }
+-- static int inc(lua_State *L) {
+--     luaL_checktype(L, 1, LUA_TUSERDATA);
+--     int *c_ptr = luaL_checkudata(L, 1, "counter");
+--     if (!c_ptr) luaL_typerror(L, 1, "counter");
+--     (*c_ptr)++;
+--     return 0;
+-- }
+-- </pre></body></html>]])
+--             webview:show(0.1)
+--             obj.makecodeview(obj.slideView, "LuaVsLuaSkinIIRight", "righthalf", [[luaL_Reg lib[] = {{"new", new}, {NULL, NULL}};
+-- luaL_Reg obj[] = {{"inc", inc}, {NULL, NULL}};
+-- void main() {
+--     LuaSkin *skin = [LuaSkin shared];
+--     [skin registerLibrary:lib metaFunctions:nil];
+--     [skin registerObject:"counter" objectFunctions:obj];
+-- }
+-- static int new(lua_State *L) {
+--     LuaSkin *skin = [LuaSkin shared];
+--     [skin checkArgs:LS_TINTEGER, LS_TBREAK];
+--     Counter *c = [SomeCounterClass newClass];
+--     c.value = lua_tointeger(L, 1);
+--     [skin pushNSObject:c];
+--     return 1;
+-- }
+-- static int inc(lua_State *L) {
+--     LuaSkin *skin = [LuaSkin shared];
+--     [skin checkArgs:LS_TUSERDATA, "counter", LS_TBREAK];
+--     Counter *c = get_object(Counter, L, 1, "counter");
+--     c.value++;
+--     return 0;
+-- }
+-- ]])
+--         end,
+--     },
     {
-        ["header"] = "LuaSkin (real example)",
+        ["header"] = "LuaSkin - Custom object translation",
         ["enterFn"] = function()
             obj.makeimageview(obj.slideView, "streamdeck", "body", "streamdeck.jpg")
         end,
     },
     {
-        ["header"] = "LuaSkin (real example)",
+        ["header"] = "LuaSkin - Custom object translation",
         ["enterFn"] = function()
             obj.makecodeview(obj.slideView, "luaSkinPart2", "body", [[
 static int pushHSStreamDeckDevice(lua_State *L, id obj) {
@@ -483,7 +580,7 @@ static id toHSStreamDeckDeviceFromLua(lua_State *L, int idx) {
         end,
     },
     {
-        ["header"] = "LuaSkin (real example)",
+        ["header"] = "LuaSkin - Custom object translation",
         ["enterFn"] = function()
             obj.makecodeview(obj.slideView, "luaSkinPart3", "body", [[
 static int streamdeck_setButtonImage(lua_State *L __unused) {
